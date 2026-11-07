@@ -1,6 +1,6 @@
 # ERP Sales Management System API 🛒
 
-A robust and scalable Enterprise Resource Planning (ERP) Web API built to manage products, inventory, and sales operations securely. 
+A  scalable Enterprise Resource Planning (ERP) Web API built to manage products, inventory, and sales operations securely. 
 
 ## 🏗️ Architecture & Patterns
 This project strictly follows **Clean Architecture** principles to ensure separation of concerns, maintainability, and scalability. It is divided into four main layers:
