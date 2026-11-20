@@ -62,3 +62,14 @@ The solution is structured into four decoupled layers following **Clean Architec
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/Dahoomshaheen/ERP_System.API.git](https://github.com/Dahoomshaheen/ERP_System.API.git)
+   ```
+2. **Configure Database Connection:**
+   Update `"Defaultconnection"` in `ERP_System.API/appsettings.json` to point to your SQL Server instance.
+3. **Apply EF Core Migrations:**
+   Open **Package Manager Console** (set Default Project to `ERP_System.Infrastructure`) and run:
+   ```powershell
+   Update-Database
+   ```
+4. **Run the API:**
+   Start the project in Visual Studio (default HTTPS port: `7104`).
+   * **Default Admin Credentials:** Username: `admin` | Password: `123456`
