@@ -1,14 +1,14 @@
-﻿using ERP_System.Infrastructure ;
-
+﻿// Defining interfaces along with their corresponding classes
+using ERP_System.Application.Interfaces;
+using ERP_System.Infrastructure ;
+using ERP_System.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
-// Defining interfaces along with their corresponding classes
-using ERP_System.Application.Interfaces;
-using ERP_System.Infrastructure.Repositories;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -28,8 +28,11 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ISalesRepository, SalesRepository>();
 
-
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -85,9 +88,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()   // يسمح لأي دومين أو بورت يكلم السيرفر
-              .AllowAnyMethod()   // يسمح بكل العمليات (GET, POST, PUT, DELETE)
-              .AllowAnyHeader();  // يسمح بإرسال الهيدرز زي الـ Authorization Token
+        policy.AllowAnyOrigin()  
+              .AllowAnyMethod()  
+              .AllowAnyHeader(); 
     });
 });
 //----19/11/2026

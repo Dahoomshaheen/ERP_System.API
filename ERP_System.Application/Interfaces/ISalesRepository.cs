@@ -10,5 +10,6 @@ namespace ERP_System.Application.Interfaces
     public interface ISalesRepository
     {
          Task AddInvoiceAsync(SalesHeader invoice);
+        Task<IEnumerable<SalesHeader>> GetAllInvoicesAsync();
     }
 }

@@ -42,5 +42,11 @@ namespace ERP_System.API.Controllers
                 Total = invoice.TotalAmount
             });
         }
-    }
+        [HttpGet]
+        public async Task<IActionResult> GetAllInvoices()
+        {
+            var invoices = await _salesRepo.GetAllInvoicesAsync();
+            return Ok(invoices);
+        }
+    }   
 }
