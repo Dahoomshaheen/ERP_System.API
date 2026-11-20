@@ -1,4 +1,4 @@
-using ERP_System.Infrastructure ;
+﻿using ERP_System.Infrastructure ;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -79,9 +79,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Enable Authorization
 builder.Services.AddAuthorization();
+//----19/11/2026
+// Allow Frontend apps to communicate with this API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()   // يسمح لأي دومين أو بورت يكلم السيرفر
+              .AllowAnyMethod()   // يسمح بكل العمليات (GET, POST, PUT, DELETE)
+              .AllowAnyHeader();  // يسمح بإرسال الهيدرز زي الـ Authorization Token
+    });
+});
+//----19/11/2026
 
 var app = builder.Build();
 
+
+//----19/11/2026
+app.UseHttpsRedirection();
+
+// IMPORTANT: Must be placed BEFORE UseAuthentication and UseAuthorization
+app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
+//----19/11/2026
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

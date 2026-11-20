@@ -14,12 +14,12 @@ namespace ERP_System.Domain.Entities
 
       public decimal CostPrice { set; get; }
          public int UnitId { set; get; }
-        public Unit Unit { set; get; }
+        public Unit? Unit { set; get; }
         public int GroupId { set; get; }
-        public Group Group  { set; get; }
+        public Group? Group  { set; get; }
 
         public int Warehouseid { set; get; }
-        public Warehouse Warehouse { set; get; }
+        public Warehouse? Warehouse { set; get; }
 
 
 

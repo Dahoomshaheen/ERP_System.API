@@ -60,7 +60,7 @@ namespace ERP_System.API.Controllers
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(2), 
+                expires: DateTime.Now.AddHours(8), 
                 signingCredentials: credentials);
 
             return Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token) });

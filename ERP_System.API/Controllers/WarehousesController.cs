@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ERP_System.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[Controller]")]
     [ApiController]
     public class WarehouseController : ControllerBase
     {

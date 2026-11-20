@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ERP_System.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[Controller]")]
     [ApiController]
     [Authorize]
     public class SalesController : ControllerBase
