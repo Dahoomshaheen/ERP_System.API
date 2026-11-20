@@ -1,10 +1,9 @@
-﻿// Defining interfaces along with their corresponding classes
-using ERP_System.Application.Interfaces;
-using ERP_System.Infrastructure ;
+﻿using ERP_System.Application.Interfaces;
+using ERP_System.Domain.Entities;
+using ERP_System.Infrastructure;
 using ERP_System.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -15,16 +14,10 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 
-// Add services to the container.
-
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("Defaultconnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Defaultconnection")));
 
-// General Warehouse Registration
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-// Registering the item warehouse and the invoice warehouse
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ISalesRepository, SalesRepository>();
 
@@ -37,28 +30,22 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-c.SwaggerDoc("v1", new OpenApiInfo { Title = "ERP System API", Version = "v1" });
-
-    // Adding a lock button  in Swagger
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ERP System API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-{
-    Name = "Authorization",
-    Type = SecuritySchemeType.Http,
-    Scheme = "Bearer",
-    BearerFormat = "JWT",
-    In = ParameterLocation.Header,
-    Description = "Enter the token directly here"
-});
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter the token directly here"
+    });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             new string[] {}
         }
@@ -80,35 +67,39 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Enable Authorization
 builder.Services.AddAuthorization();
-//----19/11/2026
-// Allow Frontend apps to communicate with this API
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()  
-              .AllowAnyMethod()  
-              .AllowAnyHeader(); 
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
-//----19/11/2026
 
 var app = builder.Build();
 
+// Auto-Seed Default Admin User on Startup if no Admin exists
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var adminUser = dbContext.Set<User>().FirstOrDefault(u => u.Role == "Admin");
 
-//----19/11/2026
-app.UseHttpsRedirection();
+    if (adminUser == null)
+    {
+        dbContext.Set<User>().Add(new User
+        {
+            UserName = "admin",
+            Password = "123456",
+            Role = "Admin"
+        });
+        dbContext.SaveChanges();
+    }
+   
+}
 
-// IMPORTANT: Must be placed BEFORE UseAuthentication and UseAuthorization
-app.UseCors("AllowFrontend");
-
-app.UseAuthentication();
-app.UseAuthorization();
-//----19/11/2026
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -116,9 +107,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();

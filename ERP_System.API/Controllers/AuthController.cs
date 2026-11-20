@@ -1,14 +1,15 @@
 ﻿using ERP_System.Application.Interfaces;
 using ERP_System.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace ERP_System.API.Controllers
 {
@@ -25,16 +26,24 @@ namespace ERP_System.API.Controllers
             _userRepo = userRepo;
         }
 
-        
+        // Only Admin can create new employee accounts (Cashier or Admin)
+        [Authorize(Roles = "Admin")]
         [HttpPost("register")]
         public async Task<IActionResult> Register(User user)
         {
-            
+            var users = await _userRepo.GetAllAsync();
+            if (users.Any(u => u.UserName.ToLower() == user.UserName.ToLower()))
+            {
+                return BadRequest(new { Message = $"Username '{user.UserName}' is already taken." });
+            }
+
+            // Normalize role (default to Cashier if empty or invalid)
+            user.Role = (user.Role == "Admin") ? "Admin" : "Cashier";
+
             await _userRepo.AddAsync(user);
-            return Ok("The user has been registered successfully.");
+            return StatusCode(201, new { Message = $"User '{user.UserName}' registered successfully as {user.Role}." });
         }
 
-        
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] User loginInfo)
         {
@@ -43,16 +52,17 @@ namespace ERP_System.API.Controllers
 
             if (user == null)
             {
-                return Unauthorized("Incorrect username or password.");
+                return Unauthorized(new { Message = "Incorrect username or password." });
             }
 
-            
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, user.Role), 
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -60,10 +70,15 @@ namespace ERP_System.API.Controllers
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(8), 
+                expires: DateTime.Now.AddHours(8),
                 signingCredentials: credentials);
 
-            return Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token) });
+            return Ok(new
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Role = user.Role,
+                UserName = user.UserName
+            });
         }
     }
 }

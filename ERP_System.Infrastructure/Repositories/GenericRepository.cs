@@ -31,5 +31,10 @@ namespace ERP_System.Infrastructure.Repositories
             await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
+        public async Task DeleteAsync(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
+        }
     }
 }
